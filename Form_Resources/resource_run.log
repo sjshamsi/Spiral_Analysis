@@ -1,0 +1,109 @@
+ERROR:__main__:Fatal error in forming resources for 1-456385_19_14732837
+Traceback (most recent call last):
+  File "<ipython-input-8-31bfd98a387b>", line 17, in <module>
+    galdict = spiral_resources.return_dict(path)
+  File "/home/sshamsi_haverford_edu/galaxy_zoo/Spiral_Reduce_Memory/spiral_resources.py", line 39, in return_dict
+    maps = Maps(galdict['mangaid'])
+  File "/home/sshamsi_haverford_edu/miniconda3/envs/marvin/lib/python3.9/site-packages/marvin/tools/maps.py", line 97, in __init__
+    MarvinToolsClass.__init__(self, input=input, filename=filename,
+  File "/home/sshamsi_haverford_edu/miniconda3/envs/marvin/lib/python3.9/site-packages/marvin/tools/core.py", line 116, in __init__
+    MMAMixIn.__init__(self, input=input, filename=filename, mangaid=mangaid,
+  File "/home/sshamsi_haverford_edu/miniconda3/envs/marvin/lib/python3.9/site-packages/marvin/tools/mixins/mma.py", line 127, in __init__
+    self._doLocal()
+  File "/home/sshamsi_haverford_edu/miniconda3/envs/marvin/lib/python3.9/site-packages/marvin/tools/mixins/mma.py", line 288, in _doLocal
+    self.download()
+  File "/home/sshamsi_haverford_edu/miniconda3/envs/marvin/lib/python3.9/site-packages/marvin/tools/maps.py", line 213, in download
+    return super(Maps, self).download(path_type, **params)
+  File "/home/sshamsi_haverford_edu/miniconda3/envs/marvin/lib/python3.9/site-packages/marvin/tools/mixins/mma.py", line 316, in download
+    access.set_stream()
+  File "/home/sshamsi_haverford_edu/miniconda3/envs/marvin/lib/python3.9/site-packages/sdss_access/sync/baseaccess.py", line 106, in set_stream
+    self.set_stream_task(task)
+  File "/home/sshamsi_haverford_edu/miniconda3/envs/marvin/lib/python3.9/site-packages/sdss_access/sync/rsync.py", line 61, in set_stream_task
+    out = self.get_task_out(task=task)
+  File "/home/sshamsi_haverford_edu/miniconda3/envs/marvin/lib/python3.9/site-packages/sdss_access/sync/rsync.py", line 37, in get_task_out
+    raise AccessError("Return code %r\n%s" % (status, err))
+sdss_access.path.path.AccessError: Return code 23
+b'rsync: link_stat "mangawork/manga/spectro/analysis/v3_1_1/3.1.0/HYB10-MILESHC-MASTARSSP/11939/1901/manga-11939-1901-MAPS-HYB10-MILESHC-MASTARSSP.fits.gz" (in sas) failed: No such file or directory (2)\nrsync error: some files/attrs were not transferred (see previous errors) (code 23) at main.c(1677) [Receiver=3.1.3]\n'
+ERROR:__main__:Fatal error in forming resources for 1-634800_91_14744269
+Traceback (most recent call last):
+  File "<ipython-input-8-31bfd98a387b>", line 17, in <module>
+    galdict = spiral_resources.return_dict(path)
+  File "/home/sshamsi_haverford_edu/galaxy_zoo/Spiral_Reduce_Memory/spiral_resources.py", line 39, in return_dict
+    maps = Maps(galdict['mangaid'])
+  File "/home/sshamsi_haverford_edu/miniconda3/envs/marvin/lib/python3.9/site-packages/marvin/tools/maps.py", line 97, in __init__
+    MarvinToolsClass.__init__(self, input=input, filename=filename,
+  File "/home/sshamsi_haverford_edu/miniconda3/envs/marvin/lib/python3.9/site-packages/marvin/tools/core.py", line 116, in __init__
+    MMAMixIn.__init__(self, input=input, filename=filename, mangaid=mangaid,
+  File "/home/sshamsi_haverford_edu/miniconda3/envs/marvin/lib/python3.9/site-packages/marvin/tools/mixins/mma.py", line 127, in __init__
+    self._doLocal()
+  File "/home/sshamsi_haverford_edu/miniconda3/envs/marvin/lib/python3.9/site-packages/marvin/tools/mixins/mma.py", line 288, in _doLocal
+    self.download()
+  File "/home/sshamsi_haverford_edu/miniconda3/envs/marvin/lib/python3.9/site-packages/marvin/tools/maps.py", line 213, in download
+    return super(Maps, self).download(path_type, **params)
+  File "/home/sshamsi_haverford_edu/miniconda3/envs/marvin/lib/python3.9/site-packages/marvin/tools/mixins/mma.py", line 316, in download
+    access.set_stream()
+  File "/home/sshamsi_haverford_edu/miniconda3/envs/marvin/lib/python3.9/site-packages/sdss_access/sync/baseaccess.py", line 106, in set_stream
+    self.set_stream_task(task)
+  File "/home/sshamsi_haverford_edu/miniconda3/envs/marvin/lib/python3.9/site-packages/sdss_access/sync/rsync.py", line 61, in set_stream_task
+    out = self.get_task_out(task=task)
+  File "/home/sshamsi_haverford_edu/miniconda3/envs/marvin/lib/python3.9/site-packages/sdss_access/sync/rsync.py", line 37, in get_task_out
+    raise AccessError("Return code %r\n%s" % (status, err))
+sdss_access.path.path.AccessError: Return code 23
+b'rsync: link_stat "mangawork/manga/spectro/analysis/v3_1_1/3.1.0/HYB10-MILESHC-MASTARSSP/8626/9102/manga-8626-9102-MAPS-HYB10-MILESHC-MASTARSSP.fits.gz" (in sas) failed: No such file or directory (2)\nrsync error: some files/attrs were not transferred (see previous errors) (code 23) at main.c(1677) [Receiver=3.1.3]\n'
+DEBUG:parso.cache:pickle loaded: /home/sshamsi_haverford_edu/miniconda3/envs/marvin/lib/python3.9/site-packages/jedi/third_party/typeshed/stdlib/2and3/builtins.pyi
+DEBUG:parso.cache:pickle loaded: /home/sshamsi_haverford_edu/miniconda3/envs/marvin/lib/python3.9/site-packages/jedi/third_party/typeshed/stdlib/3/sys.pyi
+DEBUG:parso.python.diff:diff parser start
+DEBUG:parso.python.diff:line_lengths old: 5; new: 5
+DEBUG:parso.python.diff:-> code[equal] old[1:4] new[1:4]
+DEBUG:parso.python.diff:parse_part from 1 to 5 (to 4 in part parser)
+DEBUG:parso.python.diff:-> code[replace] old[5:5] new[5:5]
+DEBUG:parso.python.diff:diff parser end
+DEBUG:parso.python.diff:diff parser start
+DEBUG:parso.python.diff:line_lengths old: 5; new: 6
+DEBUG:parso.python.diff:-> code[equal] old[1:4] new[1:4]
+DEBUG:parso.python.diff:parse_part from 1 to 6 (to 5 in part parser)
+DEBUG:parso.python.diff:-> code[replace] old[5:5] new[5:6]
+DEBUG:parso.python.diff:diff parser end
+DEBUG:parso.cache:pickle loaded: /home/sshamsi_haverford_edu/miniconda3/envs/marvin/lib/python3.9/site-packages/pandas/__init__.py
+DEBUG:parso.python.diff:diff parser start
+DEBUG:parso.python.diff:line_lengths old: 6; new: 6
+DEBUG:parso.python.diff:-> code[equal] old[1:5] new[1:5]
+DEBUG:parso.python.diff:parse_part from 1 to 6 (to 5 in part parser)
+DEBUG:parso.python.diff:-> code[replace] old[6:6] new[6:6]
+DEBUG:parso.python.diff:diff parser end
+DEBUG:parso.python.diff:diff parser start
+DEBUG:parso.python.diff:line_lengths old: 6; new: 6
+DEBUG:parso.python.diff:-> code[equal] old[1:5] new[1:5]
+DEBUG:parso.python.diff:parse_part from 1 to 6 (to 5 in part parser)
+DEBUG:parso.python.diff:-> code[replace] old[6:6] new[6:6]
+DEBUG:parso.python.diff:diff parser end
+DEBUG:parso.python.diff:diff parser start
+DEBUG:parso.python.diff:line_lengths old: 6; new: 6
+DEBUG:parso.python.diff:-> code[equal] old[1:5] new[1:5]
+DEBUG:parso.python.diff:parse_part from 1 to 6 (to 5 in part parser)
+DEBUG:parso.python.diff:-> code[replace] old[6:6] new[6:6]
+DEBUG:parso.python.diff:diff parser end
+DEBUG:parso.cache:pickle loaded: /home/sshamsi_haverford_edu/miniconda3/envs/marvin/lib/python3.9/site-packages/pandas/io/pickle.py
+DEBUG:parso.python.diff:diff parser start
+DEBUG:parso.python.diff:line_lengths old: 6; new: 6
+DEBUG:parso.python.diff:-> code[equal] old[1:5] new[1:5]
+DEBUG:parso.python.diff:parse_part from 1 to 6 (to 5 in part parser)
+DEBUG:parso.python.diff:-> code[replace] old[6:6] new[6:6]
+DEBUG:parso.python.diff:diff parser end
+DEBUG:parso.python.diff:diff parser start
+DEBUG:parso.python.diff:line_lengths old: 6; new: 8
+DEBUG:parso.python.diff:-> code[equal] old[1:5] new[1:5]
+DEBUG:parso.python.diff:parse_part from 1 to 8 (to 7 in part parser)
+DEBUG:parso.python.diff:-> code[replace] old[6:6] new[6:8]
+DEBUG:parso.python.diff:diff parser end
+DEBUG:parso.python.diff:diff parser start
+DEBUG:parso.python.diff:line_lengths old: 8; new: 8
+DEBUG:parso.python.diff:-> code[equal] old[1:7] new[1:7]
+DEBUG:parso.python.diff:parse_part from 1 to 8 (to 7 in part parser)
+DEBUG:parso.python.diff:-> code[replace] old[8:8] new[8:8]
+DEBUG:parso.python.diff:diff parser end
+DEBUG:parso.python.diff:diff parser start
+DEBUG:parso.python.diff:line_lengths old: 8; new: 1
+DEBUG:parso.python.diff:-> code[replace] old[1:8] new[1:1]
+DEBUG:parso.python.diff:parse_part from 1 to 1 (to 0 in part parser)
+DEBUG:parso.python.diff:diff parser end
