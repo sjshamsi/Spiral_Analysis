@@ -20,7 +20,7 @@ import pandas as pd
 import numpy as np
 
 import sys
-sys.path.insert(0, '../GZ3D_production/') #this might need changing if working across platforms
+sys.path.insert(0, '/home/sshamsi/galaxyzoo/GZ3D_production') #this might need changing if working across platforms
 
 import gz3d_fits
 
@@ -164,26 +164,23 @@ def form_global_df(galdict, spiral_threshold=3, other_threshold=3):
     data_array = np.array([r_array, ha_array, sig_ha_array, ha_snr, hb_array, sig_hb_array, hb_snr,
                            comp_array, agn_array, seyfert_array, liner_array]).transpose()
 
-    df = pd.DataFrame(data=data_array, columns=['Radius', '$H_{\\alpha}$', '$\sigma H_{\\alpha}$',
-                                                'S/N $H_{\\alpha}$', '$H_{\\beta}$', '$\sigma H_{\\beta}$',
-                                                'S/N $H_{\\beta}$', 'Comp', 'AGN', 'Seyfert', 'Liner'])
-
-    df['$r/r_e$'] = df['Radius'] / galdict['eff_rad']
+    df = pd.DataFrame(data=data_array, columns=['radius', 'Ha', 'sig_Ha', 'sn_Ha', 'Hb', 'sig_Hb', 'sn_Hb', 'comp', 'agn', 'seyfert', 'liner'])
+    df['r/re'] = df['radius'] / galdict['eff_rad']
     
-    df.iloc[ha_mask_array, df.columns.get_loc('$H_{\\alpha}$')] = np.nan
-    df.iloc[ha_mask_array, df.columns.get_loc('$\sigma H_{\\alpha}$')] = np.nan
-    df.iloc[ha_mask_array, df.columns.get_loc('$H_{\\beta}$')] = np.nan
-    df.iloc[ha_mask_array, df.columns.get_loc('$\sigma H_{\\beta}$')] = np.nan
+    df.iloc[ha_mask_array, df.columns.get_loc('Ha')] = np.nan
+    df.iloc[ha_mask_array, df.columns.get_loc('sig_Ha')] = np.nan
+    df.iloc[ha_mask_array, df.columns.get_loc('Hb')] = np.nan
+    df.iloc[ha_mask_array, df.columns.get_loc('sig_Hb')] = np.nan
     
-    df.iloc[hb_mask_array, df.columns.get_loc('$H_{\\beta}$')] = np.nan
-    df.iloc[hb_mask_array, df.columns.get_loc('$\sigma H_{\\beta}$')] = np.nan
+    df.iloc[hb_mask_array, df.columns.get_loc('Hb')] = np.nan
+    df.iloc[hb_mask_array, df.columns.get_loc('sig_Hb')] = np.nan
     
     df = df.replace([np.inf, -np.inf], np.nan)
     
     df = update_spirals(df, galdict['filepath'], galdict['map_shape'], spiral_threshold=spiral_threshold, other_threshold=other_threshold)
     
-    df['MaNGA ID'] = galdict['mangaid']
-    df['Mass'] = galdict['mass']
+    df['mangaid'] = galdict['mangaid']
+    df['mass'] = galdict['mass']
     
     return df
 
@@ -211,7 +208,7 @@ def update_spirals(df, file_path, map_shape, spiral_threshold=3, other_threshold
     if ret_bool_masks:
         return spiral_spaxel_bool, nonspiral_spaxel_bool
     
-    df['Spiral Arm'] = spiral_spaxel_bool.flatten()
-    df['Nonspiral Arm'] = nonspiral_spaxel_bool.flatten()
+    df['sp_{Tsp}{Tnsp}'.format(Tsp=spiral_threshold, Tnsp=other_threshold)] = spiral_spaxel_bool.flatten()
+    df['nsp_{Tsp}{Tnsp}'.format(Tsp=spiral_threshold, Tnsp=other_threshold)] = nonspiral_spaxel_bool.flatten()
     
     return df
