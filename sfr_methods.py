@@ -7,6 +7,8 @@
 import pathlib
 import numpy as np
 import pandas as pd
+from skimage.draw import disk
+from scipy.sparse import csc_matrix, save_npz, load_npz
 
 
 # In[2]:
@@ -17,7 +19,6 @@ def flux2sfr(ha_flux, ha_stdv, hb_flux, hb_stdv, galdict, avg=False):
     
     ha_flux = ha_flux * 1E-13
     hb_flux = hb_flux * 1E-13
-
     ha_stdv = ha_stdv * 1E-13
     hb_stdv = hb_stdv * 1E-13
     
@@ -34,116 +35,112 @@ def flux2sfr(ha_flux, ha_stdv, hb_flux, hb_stdv, galdict, avg=False):
 # In[3]:
 
 
-def cov_matrix_maker(mapshape, err_series):
-    '''Calculates the covaraince matrix for our galaxy. That is rather intensive.'''
+def sparse_arr_maker(map_shape, valid_indices, err_array):
+    cache = {}
+    sparse_rows = np.array([], dtype=int)
+    sparse_cols = np.array([], dtype=int)
+    sparse_vals = np.array([])
     
-    corr_matrix = np.load('/home/sshamsi/galaxyzoo/Spiral_Analysis/Matrices/corr_matrices/corr_matrix_' + str(mapshape[0]) + '.npy')
-    
-    r = mapshape[0]**2
-    cov_mat = np.zeros((r, r))
-    
-    for item, frame in err_series.iteritems():
-        if pd.isnull(frame):
-            k = 0
-        else:
-            k = frame
-            
-        cov_mat[item] = corr_matrix[item] * k
-        cov_mat[:, item] = corr_matrix[:, item] * k
+    for ind1 in valid_indices:
+        err1 = err_array[ind1]
+        i, j = ind1 // map_shape[0], ind1 % map_shape[0]
+        indices = disk((i, j), 6.4, shape=map_shape)
+        cache[ind1] = {}
         
-    return cov_mat
+        for k, l in zip(indices[0], indices[1]):
+            ind2 = k * map_shape[0] + l
+            
+            if ind1 == ind2:
+                val = err1**2
+                sparse_rows = np.append(sparse_rows, ind1)
+                sparse_cols = np.append(sparse_cols, ind2)
+                sparse_vals = np.append(sparse_vals, val)
+                continue
+                
+            err2 = err_array[ind2]
+            if np.isnan(err2):
+                continue
+                
+            if (ind2 in cache) and (ind1 in cache[ind2]):
+                continue
+            
+            dist = np.sqrt((i - k)**2 + (j - l)**2)
+            val = np.exp(-0.5 * (dist / 1.9)**2) * err1 * err2
+            
+            sparse_rows = np.append(sparse_rows, [ind1, ind2])
+            sparse_cols = np.append(sparse_cols, [ind2, ind1])
+            sparse_vals = np.append(sparse_vals, [val, val])
+            
+            cache[ind1][ind2] = val
+            
+    return sparse_rows, sparse_cols, sparse_vals
 
 
 # In[4]:
 
 
-def ret_cov_matrices(df, galdict, mode=None):
+def ret_cov_matrices(df, galdict, mode=None, save_matrix=True):
     '''This method loads and returns the H-a/H-b covariance matrix. If not available,
     it calculates it, which is resource intensive.'''
-    
     if mode == None:
-        raise ValueError('Argument "mode" must be set to "ha" or "hb".')
+        raise ValueError('Argument "mode" must be set to "Ha" or "Hb".')
         
-    elif mode == 'ha':
-        hafile = pathlib.Path("/home/sshamsi/galaxyzoo/Spiral_Analysis/Matrices/cov_matrices/" + galdict['filename'] + '.ha.npy')
+    cov_file = pathlib.Path('/home/sshamsi/galaxyzoo/Spiral_Analysis/Matrices/Sparse_Covariance_Matrices/'
+                            + galdict['filename'] + '.' + mode + '.npz')
+    if cov_file.exists():
+        cov_matrix = load_npz(str(cov_file.resolve()))
+    else:
+        print(mode, 'covariance file does not exist. Calculating...')
+        cov_matrix_shape = (galdict['map_shape'][0]**2, galdict['map_shape'][0]**2)
+        valid_indices = df.dropna().index.to_numpy()
+        err_array = df['sig_' + mode].to_numpy()
         
-        if hafile.exists():
-            ha_cov = np.load(hafile, allow_pickle=True )
-            return ha_cov
+        rows, cols, data = sparse_arr_maker(galdict['map_shape'], valid_indices, err_array)
+        cov_matrix = csc_matrix((data, (rows, cols)), shape=cov_matrix_shape)
         
-        else:
-            print("H-a covariance file does not exist. Calculating...")
-            ha_cov = cov_matrix_maker(galdict['map_shape'], df.sig_Ha)
-            return ha_cov
+        if save_matrix:
+            save_npz('/home/sshamsi/galaxyzoo/Spiral_Analysis/Matrices/Sparse_Covariance_Matrices/'
+                     + galdict['filename'] + '.' + mode, cov_matrix)
         
-    elif mode == 'hb':
-        hbfile = pathlib.Path("/home/sshamsi/galaxyzoo/Spiral_Analysis/Matrices/cov_matrices/" + galdict['filename'] + '.hb.npy')
-        
-        if hbfile.exists():
-            hb_cov = np.load(hbfile)
-            return hb_cov
-        
-        else:
-            print("H-b covariance file does not exist. Calculating...")
-            hb_cov = cov_matrix_maker(galdict['map_shape'], df.sig_Hb)
-            return hb_cov
+    return cov_matrix
 
 
-# In[ ]:
+# In[5]:
 
 
-def get_sfr(bin_index, df, galdict, avg=False):
-    '''Return the SFR for a bin of spxels.'''
-    
-    ha_flux, ha_stdv = get_emission(bin_index, df, galdict, mode='ha', avg=avg)
-    hb_flux, hb_stdv = get_emission(bin_index, df, galdict, mode='hb', avg=avg)
-    
-    if ha_flux == 0 or hb_flux == 0:
-        print("Returning SFR = 0 as bin results in Ha or Hb == 0. MaNGA ID:", galdict['mangaid'])
-        return 0, 0
+def get_sfr(spax_bin, df, galdict, avg=False):
+    '''Return the SFR for a bin of spaxels.'''
+    if len(spax_bin) == 0:
+        raise ValueError('The spaxel_bin array must not be empty.')
+        
+    ha_flux, ha_stdv = get_emission(bin_index, df, galdict, mode='Ha', avg=avg)
+    hb_flux, hb_stdv = get_emission(bin_index, df, galdict, mode='Hb', avg=avg)
         
     return flux2sfr(ha_flux, ha_stdv, hb_flux, hb_stdv, galdict, avg=avg)
 
 
-# In[ ]:
+# In[6]:
 
 
-def get_emission(bin_index, df, galdict, mode=None, avg=False):
+def get_emission(spax_bin, df, galdict, mode=None, avg=False):
     '''Return the H-a or H-b flux.'''
     
-    if len(bin_index) == 0:
-        print('Returning', mode, 'emission = 0 as no spaxels in bin. MaNGA ID:', galdict['mangaid'])
-        return 0, 0
+    if mode not in ['Ha', 'Hb']:
+        raise ValueError('Argument "mode" must be set to "Ha" or "Hb".')
+    if len(spax_bin) == 0:
+        raise ValueError('The spaxel_bin array must not be empty.')
     
-    set_index = set(bin_index)
-    tot_index = list(df.index)
+    summ = df.loc[spax_bin.tolist(), mode].sum()
     
-    w_vec = np.array([[x in set_index for x in tot_index]]) * 1
+    w_vals = np.ones(len(spax_bin))
+    w_rows = np.zeros(len(spax_bin))
+    w_vec = csc_matrix((w_vals, (w_rows, spax_bin)), shape=(1, len(df)))
+    cov_mat = ret_cov_matrices(df, galdict, mode=mode)
+    var = w_vec.dot(cov_mat.dot(w_vec.transpose()))[0, 0]
     
-    if mode == None:
-        raise ValueError('Argument "mode" must be "ha", or "hb".')
-    elif mode == 'ha':
-        summ = df.loc[bin_index.tolist(), 'Ha'].sum()
-        
-        ha_cov = ret_cov_matrices(df, galdict, mode=mode)
-        cov_mat = ha_cov
-    elif mode == 'hb':
-        summ = df.loc[bin_index.tolist(), 'Hb'].sum()
-        
-        hb_cov = ret_cov_matrices(df, galdict, mode=mode)
-        cov_mat = hb_cov
-        
-    var = np.linalg.multi_dot([w_vec, cov_mat, w_vec.T])[0][0]
-
     if avg:
-        n = len(bin_index)
+        n = len(spax_bin)
         return summ / n, np.sqrt(var / (n**2))
     
     return summ, np.sqrt(var)
-
-
-# In[ ]:
-
-
-
 
