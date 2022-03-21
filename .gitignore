@@ -3,9 +3,10 @@ Make_Resources/Dicts/*
 Make_Resources/Dicts_Avg_SFR_Thresholds/*
 Make_Resources/Dicts_Total_SFR_Thresholds/*
 Selecting_Sample/Images_Comparing_Thresholds/*
-Matrices
+Matrices/*
 .ipynb_checkpoints
 __pycache__
 old
 spiral_resources.ipynb
 sfr_methods.ipynb
+Selecting_Sample/Images_Comparing_Thresholds/*
