@@ -13,14 +13,14 @@
 # In[2]:
 
 
-#First we'll import all the module we need
+#First we'll import all the modules we need
 from marvin.tools.maps import Maps
 
 import pandas as pd
 import numpy as np
 
 import sys
-sys.path.insert(0, '/home/sshamsi/galaxyzoo/GZ3D_production') #this might need changing if working across platforms
+sys.path.insert(0, '../GZ3D_production') #this might need changing if working across platforms
 
 import gz3d_fits
 
@@ -65,7 +65,7 @@ def return_df(galdict):
 
 
 def make_emmasks(hamask, hbmask):
-    '''Takes masks from the MaNGA maps and if a spaxel is flagges as
+    '''Takes masks from the MaNGA maps and if a spaxel is flagged as
     "DO NOT USE (2**30) then it marks it as "0". Creates global maek objects
     from these.'''
     

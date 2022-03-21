@@ -35,9 +35,9 @@ def flux2sfr(ha_flux, ha_stdv, hb_flux, hb_stdv, galdict, avg=False):
 
 
 def cov_matrix_maker(mapshape, err_series):
-    '''Calculates the covaraince matrix for our galaxy.That is rather intensive.'''
+    '''Calculates the covaraince matrix for our galaxy. That is rather intensive.'''
     
-    corr_matrix = np.load('/home/sshamsi_haverford_edu/galaxy_zoo/GZ3D_spiral_analysis/Matrices/corr_matrices/corr_matrix' + str(mapshape[0]) + '.npy')
+    corr_matrix = np.load('/home/sshamsi/galaxyzoo/Spiral_Analysis/Matrices/corr_matrices/corr_matrix_' + str(mapshape[0]) + '.npy')
     
     r = mapshape[0]**2
     cov_mat = np.zeros((r, r))
@@ -65,19 +65,19 @@ def ret_cov_matrices(df, galdict, mode=None):
         raise ValueError('Argument "mode" must be set to "ha" or "hb".')
         
     elif mode == 'ha':
-        hafile = pathlib.Path("/home/sshamsi_haverford_edu/galaxy_zoo/GZ3D_spiral_analysis/Matrices/cov_matrices/" + galdict['filename'].split('.')[0] + 'ha.npy')
+        hafile = pathlib.Path("/home/sshamsi/galaxyzoo/Spiral_Analysis/Matrices/cov_matrices/" + galdict['filename'] + '.ha.npy')
         
         if hafile.exists():
-            ha_cov = np.load(hafile)
+            ha_cov = np.load(hafile, allow_pickle=True )
             return ha_cov
         
         else:
             print("H-a covariance file does not exist. Calculating...")
-            ha_cov = cov_matrix_maker(galdict['map_shape'], df['$\sigma H_{\\alpha}$'])
+            ha_cov = cov_matrix_maker(galdict['map_shape'], df.sig_Ha)
             return ha_cov
         
     elif mode == 'hb':
-        hbfile = pathlib.Path("/home/sshamsi_haverford_edu/galaxy_zoo/GZ3D_spiral_analysis/Matrices/cov_matrices/" + galdict['filename'].split('.')[0] + 'hb.npy')
+        hbfile = pathlib.Path("/home/sshamsi/galaxyzoo/Spiral_Analysis/Matrices/cov_matrices/" + galdict['filename'] + '.hb.npy')
         
         if hbfile.exists():
             hb_cov = np.load(hbfile)
@@ -85,11 +85,11 @@ def ret_cov_matrices(df, galdict, mode=None):
         
         else:
             print("H-b covariance file does not exist. Calculating...")
-            hb_cov = cov_matrix_maker(galdict['map_shape'], df['$\sigma H_{\\beta}$'])
+            hb_cov = cov_matrix_maker(galdict['map_shape'], df.sig_Hb)
             return hb_cov
 
 
-# In[5]:
+# In[ ]:
 
 
 def get_sfr(bin_index, df, galdict, avg=False):
@@ -99,20 +99,20 @@ def get_sfr(bin_index, df, galdict, avg=False):
     hb_flux, hb_stdv = get_emission(bin_index, df, galdict, mode='hb', avg=avg)
     
     if ha_flux == 0 or hb_flux == 0:
-        #print("Returning SFR = 0 as bin results in Ha or Hb == 0. MaNGA ID:", galdict['mangaid'])
+        print("Returning SFR = 0 as bin results in Ha or Hb == 0. MaNGA ID:", galdict['mangaid'])
         return 0, 0
-    
+        
     return flux2sfr(ha_flux, ha_stdv, hb_flux, hb_stdv, galdict, avg=avg)
 
 
-# In[6]:
+# In[ ]:
 
 
 def get_emission(bin_index, df, galdict, mode=None, avg=False):
     '''Return the H-a or H-b flux.'''
     
     if len(bin_index) == 0:
-        #print('Returning', mode, 'emission = 0 as no spaxels in bin. MaNGA ID:', galdict['mangaid'])
+        print('Returning', mode, 'emission = 0 as no spaxels in bin. MaNGA ID:', galdict['mangaid'])
         return 0, 0
     
     set_index = set(bin_index)
@@ -123,12 +123,12 @@ def get_emission(bin_index, df, galdict, mode=None, avg=False):
     if mode == None:
         raise ValueError('Argument "mode" must be "ha", or "hb".')
     elif mode == 'ha':
-        summ = df.loc[bin_index.tolist(), '$H_{\\alpha}$'].sum()
+        summ = df.loc[bin_index.tolist(), 'Ha'].sum()
         
         ha_cov = ret_cov_matrices(df, galdict, mode=mode)
         cov_mat = ha_cov
     elif mode == 'hb':
-        summ = df.loc[bin_index.tolist(), '$H_{\\beta}$'].sum()
+        summ = df.loc[bin_index.tolist(), 'Hb'].sum()
         
         hb_cov = ret_cov_matrices(df, galdict, mode=mode)
         cov_mat = hb_cov
