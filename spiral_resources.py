@@ -19,9 +19,9 @@ from pathlib import Path
 from sa_utils import save_dict, load_dict
 import pandas as pd
 import numpy as np
-import sys, os
+import sys
 
-sys.path.insert(0, os.path.abspath('../GZ3D_production/')) #this might need changing if working across platforms
+sys.path.append('/home/sshamsi/galaxyzoo/GZ3D_production/') #this might need changing if working across platforms
 import gz3d_fits
 
 
@@ -30,7 +30,7 @@ import gz3d_fits
 
 def return_dict(filepath, save=True):
     filename = filepath.split('/')[-1]
-    dict_file = Path('SFR_Resources/Dicts/' + filename + '.pkl')
+    dict_file = Path('/home/sshamsi/galaxyzoo/Spiral_Analysis/SFR_Resources/Dicts/' + filename + '.pkl')
     
     if dict_file.exists():
         dic = load_dict(str(dict_file.resolve()))
@@ -68,7 +68,7 @@ def return_dict(filepath, save=True):
 
 def return_df(galdict, spiral_threshold=3, other_threshold=3, save=True):
     filename = galdict['filename']
-    df_file = Path('SFR_Resources/DFs/' + filename + '.pkl')
+    df_file = Path('/home/sshamsi/galaxyzoo/Spiral_Analysis/SFR_Resources/DFs/' + filename + '.pkl')
     
     if df_file.exists():
         df = pd.read_pickle(str(df_file.resolve()))
@@ -232,34 +232,3 @@ def update_spirals(df, file_path, map_shape, spiral_threshold=3, other_threshold
     df['nsp_{Tsp}{Tnsp}'.format(Tsp=spiral_threshold, Tnsp=other_threshold)] = nonspiral_spaxel_bool.flatten()
     
     return df
-
-
-# In[9]:
-
-
-ex_dict = return_dict('/home/sshamsi/sas/mangawork/manga/sandbox/galaxyzoo3d/v3_0_0/1-106630_127_14715787.fits.gz')
-
-
-# In[10]:
-
-
-ex_dict
-
-
-# In[11]:
-
-
-df = return_df(ex_dict)
-
-
-# In[12]:
-
-
-df[(df['sp_33'] == False) & (df['nsp_33'] == False)]
-
-
-# In[ ]:
-
-
-
-
