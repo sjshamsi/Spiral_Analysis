@@ -1,4 +1,4 @@
-
+#!/usr/bin/env python
 # coding: utf-8
 
 # ### In this notebook, we create two objects necessary for spiral galaxy analysis. These are:
@@ -10,30 +10,37 @@
 # 
 # We cannot incorporate the galaxy details within the PANDAS dataframe as processing the dataframe can get rid of these details.
 
-# In[2]:
+# In[1]:
 
 
-#First we'll import all the modules we need
+#First we'll import all the module we need
 from marvin.tools.maps import Maps
-
+from pathlib import Path
+from sa_utils import save_dict, load_dict
 import pandas as pd
 import numpy as np
+import sys, os
 
-import sys
-sys.path.insert(0, '../GZ3D_production') #this might need changing if working across platforms
-
+sys.path.insert(0, os.path.abspath('../GZ3D_production/')) #this might need changing if working across platforms
 import gz3d_fits
 
 
-# In[3]:
+# In[2]:
 
 
-def return_dict(filepath):
+def return_dict(filepath, save=True):
+    filename = filepath.split('/')[-1]
+    dict_file = Path('SFR_Resources/Dicts/' + filename + '.pkl')
+    
+    if dict_file.exists():
+        dic = load_dict(str(dict_file.resolve()))
+        return dic
+    
     galdict = {
         'filepath': filepath
     }
     
-    galdict['filename'] = galdict['filepath'].split('/')[-1]
+    galdict['filename'] = filename
     galdict['mangaid'] = galdict['filename'].split('_')[0]
     
     maps = Maps(galdict['mangaid'])
@@ -51,17 +58,30 @@ def return_dict(filepath):
     galdict['theta'] = np.radians(maps.nsa['elpetro_phi'] - 90.0)
     galdict['elpetro_ba'] = maps.nsa['elpetro_ba']
     
+    if save:
+        save_dict(galdict, str(dict_file.resolve()))
     return galdict
 
 
+# In[3]:
+
+
+def return_df(galdict, spiral_threshold=3, other_threshold=3, save=True):
+    filename = galdict['filename']
+    df_file = Path('SFR_Resources/DFs/' + filename + '.pkl')
+    
+    if df_file.exists():
+        df = pd.read_pickle(str(df_file.resolve()))
+        return df
+    
+    df = form_global_df(galdict, spiral_threshold=spiral_threshold,
+                        other_threshold=other_threshold)
+    if save:
+        df.to_pickle(str(df_file.resolve()))
+    return df
+
+
 # In[4]:
-
-
-def return_df(galdict):
-    return form_global_df(galdict, spiral_threshold=3, other_threshold=3)
-
-
-# In[5]:
 
 
 def make_emmasks(hamask, hbmask):
@@ -90,7 +110,7 @@ def make_emmasks(hamask, hbmask):
     return ha_mask_array, hb_mask_array
 
 
-# In[6]:
+# In[5]:
 
 
 def btp_masks(maps):
@@ -107,7 +127,7 @@ def btp_masks(maps):
     return comp, agn, seyfert, liner
 
 
-# In[7]:
+# In[6]:
 
 
 def make_r_array(map_shape, theta, elpetro_ba):
@@ -130,7 +150,7 @@ def make_r_array(map_shape, theta, elpetro_ba):
     return r_array
 
 
-# In[8]:
+# In[7]:
 
 
 def form_global_df(galdict, spiral_threshold=3, other_threshold=3):
@@ -185,7 +205,7 @@ def form_global_df(galdict, spiral_threshold=3, other_threshold=3):
     return df
 
 
-# In[9]:
+# In[8]:
 
 
 def update_spirals(df, file_path, map_shape, spiral_threshold=3, other_threshold=3, ret_bool_masks=False):
@@ -212,3 +232,34 @@ def update_spirals(df, file_path, map_shape, spiral_threshold=3, other_threshold
     df['nsp_{Tsp}{Tnsp}'.format(Tsp=spiral_threshold, Tnsp=other_threshold)] = nonspiral_spaxel_bool.flatten()
     
     return df
+
+
+# In[9]:
+
+
+ex_dict = return_dict('/home/sshamsi/sas/mangawork/manga/sandbox/galaxyzoo3d/v3_0_0/1-106630_127_14715787.fits.gz')
+
+
+# In[10]:
+
+
+ex_dict
+
+
+# In[11]:
+
+
+df = return_df(ex_dict)
+
+
+# In[12]:
+
+
+df[(df['sp_33'] == False) & (df['nsp_33'] == False)]
+
+
+# In[ ]:
+
+
+
+

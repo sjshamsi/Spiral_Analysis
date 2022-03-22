@@ -4,7 +4,7 @@
 # In[1]:
 
 
-import pathlib
+from pathlib import Path
 import numpy as np
 import pandas as pd
 from skimage.draw import disk
@@ -85,7 +85,7 @@ def ret_cov_matrices(df, galdict, mode=None, save_matrix=True):
     if mode == None:
         raise ValueError('Argument "mode" must be set to "Ha" or "Hb".')
         
-    cov_file = pathlib.Path('/home/sshamsi/galaxyzoo/Spiral_Analysis/Matrices/Sparse_Covariance_Matrices/'
+    cov_file = Path('/home/sshamsi/galaxyzoo/Spiral_Analysis/Matrices/Sparse_Covariance_Matrices/'
                             + galdict['filename'] + '.' + mode + '.npz')
     if cov_file.exists():
         cov_matrix = load_npz(str(cov_file.resolve()))
