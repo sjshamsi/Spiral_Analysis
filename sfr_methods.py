@@ -16,7 +16,6 @@ from scipy.sparse import csc_matrix, save_npz, load_npz
 
 def flux2sfr(ha_flux, ha_stdv, hb_flux, hb_stdv, galdict, avg=False):
     '''Take an H-alpha and H-beta flux, and then make an SFR measurement out of them.'''
-    
     ha_flux = ha_flux * 1E-13
     hb_flux = hb_flux * 1E-13
     ha_stdv = ha_stdv * 1E-13
@@ -85,8 +84,7 @@ def ret_cov_matrices(df, galdict, mode=None, save_matrix=True):
     if mode == None:
         raise ValueError('Argument "mode" must be set to "Ha" or "Hb".')
         
-    cov_file = Path('/home/sshamsi/galaxyzoo/Spiral_Analysis/Matrices/Sparse_Covariance_Matrices/'
-                            + galdict['filename'] + '.' + mode + '.npz')
+    cov_file = Path('/home/sshamsi/galaxyzoo/Spiral_Analysis/Matrices/' + galdict['filename'] + '.' + mode + '.npz')
     if cov_file.exists():
         cov_matrix = load_npz(str(cov_file.resolve()))
     else:
@@ -99,9 +97,8 @@ def ret_cov_matrices(df, galdict, mode=None, save_matrix=True):
         cov_matrix = csc_matrix((data, (rows, cols)), shape=cov_matrix_shape)
         
         if save_matrix:
-            save_npz('/home/sshamsi/galaxyzoo/Spiral_Analysis/Matrices/Sparse_Covariance_Matrices/'
-                     + galdict['filename'] + '.' + mode, cov_matrix)
-        
+            save_npz('/home/sshamsi/galaxyzoo/Spiral_Analysis/Matrices/' + galdict['filename'] + '.' +
+                     mode, cov_matrix)
     return cov_matrix
 
 
@@ -113,8 +110,8 @@ def get_sfr(spax_bin, df, galdict, avg=False):
     if len(spax_bin) == 0:
         raise ValueError('The spaxel_bin array must not be empty.')
         
-    ha_flux, ha_stdv = get_emission(bin_index, df, galdict, mode='Ha', avg=avg)
-    hb_flux, hb_stdv = get_emission(bin_index, df, galdict, mode='Hb', avg=avg)
+    ha_flux, ha_stdv = get_emission(spax_bin, df, galdict, mode='Ha', avg=avg)
+    hb_flux, hb_stdv = get_emission(spax_bin, df, galdict, mode='Hb', avg=avg)
         
     return flux2sfr(ha_flux, ha_stdv, hb_flux, hb_stdv, galdict, avg=avg)
 
@@ -124,7 +121,6 @@ def get_sfr(spax_bin, df, galdict, avg=False):
 
 def get_emission(spax_bin, df, galdict, mode=None, avg=False):
     '''Return the H-a or H-b flux.'''
-    
     if mode not in ['Ha', 'Hb']:
         raise ValueError('Argument "mode" must be set to "Ha" or "Hb".')
     if len(spax_bin) == 0:
@@ -143,4 +139,3 @@ def get_emission(spax_bin, df, galdict, mode=None, avg=False):
         return summ / n, np.sqrt(var / (n**2))
     
     return summ, np.sqrt(var)
-

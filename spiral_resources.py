@@ -84,30 +84,7 @@ def return_df(galdict, spiral_threshold=3, other_threshold=3, save=True):
 # In[4]:
 
 
-def make_emmasks(hamask, hbmask):
-    '''Takes masks from the MaNGA maps and if a spaxel is flagged as
-    "DO NOT USE (2**30) then it marks it as "0". Creates global maek objects
-    from these.'''
-    
-    ha_mask_array = hamask.flatten()
-    hb_mask_array = hbmask.flatten()
-
-    for i in range(len(ha_mask_array)):
-        if ha_mask_array[i] & 1073741824 == 0:
-            ha_mask_array[i] = 0
-            hb_mask_array[i] = 0
-        else:
-            ha_mask_array[i] = 1
-            
-            if hb_mask_array[i] & 1073741824 == 0:
-                hb_mask_array[i] = 0
-            else:
-                hb_mask_array[i] = 1
-
-    ha_mask_array = np.array(ha_mask_array, dtype=bool)
-    hb_mask_array = np.array(hb_mask_array, dtype=bool)
-    
-    return ha_mask_array, hb_mask_array
+spaxel_health = lambda x: x & 1073741824 == 0
 
 
 # In[5]:
@@ -118,7 +95,7 @@ def btp_masks(maps):
     Then we append this to the global DF later.'''
     
     bpt_masks = maps.get_bpt(return_figure=False, show_plot=False)
-
+    
     comp = bpt_masks['comp']['global']
     agn = bpt_masks['agn']['global']
     seyfert = bpt_masks['seyfert']['global']
@@ -155,14 +132,12 @@ def make_r_array(map_shape, theta, elpetro_ba):
 
 def form_global_df(galdict, spiral_threshold=3, other_threshold=3):
     '''Make a global DF.'''
-    
     #load the maps we need
     maps = Maps(galdict['mangaid'])
     hamap = maps.emline_gflux_ha_6564
     hbmap = maps.emline_gflux_hb_4862
     
     r_array =  make_r_array(galdict['map_shape'], galdict['theta'], galdict['elpetro_ba'])
-    ha_mask_array, hb_mask_array = make_emmasks(hamap.mask, hbmap.mask)
     
     #Forming the H-a and H-b values, errors, and SNR arrays
     ha_array = hamap.value.flatten()
@@ -181,26 +156,21 @@ def form_global_df(galdict, spiral_threshold=3, other_threshold=3):
     seyfert_array = seyfert.flatten()
     liner_array = liner.flatten()
     
-    data_array = np.array([r_array, ha_array, sig_ha_array, ha_snr, hb_array, sig_hb_array, hb_snr,
-                           comp_array, agn_array, seyfert_array, liner_array]).transpose()
-
-    df = pd.DataFrame(data=data_array, columns=['radius', 'Ha', 'sig_Ha', 'sn_Ha', 'Hb', 'sig_Hb', 'sn_Hb', 'comp', 'agn', 'seyfert', 'liner'])
+    ha_health_array = spaxel_health(hamap.mask.flatten())
+    hb_health_array = spaxel_health(hbmap.mask.flatten())
+    
+    data_array = np.array([r_array, ha_array, sig_ha_array, ha_snr, hb_array, sig_hb_array, hb_snr, comp_array,
+                           agn_array, seyfert_array, liner_array, ha_health_array, hb_health_array]).transpose()
+    
+    df = pd.DataFrame(data=data_array, columns=['radius', 'Ha', 'sig_Ha', 'sn_Ha', 'Hb', 'sig_Hb', 'sn_Hb', 'comp',
+                                                'agn', 'seyfert', 'liner', 'ha_spax_healthy', 'hb_spax_healthy'])
     df['r/re'] = df['radius'] / galdict['eff_rad']
-    
-    df.iloc[ha_mask_array, df.columns.get_loc('Ha')] = np.nan
-    df.iloc[ha_mask_array, df.columns.get_loc('sig_Ha')] = np.nan
-    df.iloc[ha_mask_array, df.columns.get_loc('Hb')] = np.nan
-    df.iloc[ha_mask_array, df.columns.get_loc('sig_Hb')] = np.nan
-    
-    df.iloc[hb_mask_array, df.columns.get_loc('Hb')] = np.nan
-    df.iloc[hb_mask_array, df.columns.get_loc('sig_Hb')] = np.nan
-    
-    df = df.replace([np.inf, -np.inf], np.nan)
-    
-    df = update_spirals(df, galdict['filepath'], galdict['map_shape'], spiral_threshold=spiral_threshold, other_threshold=other_threshold)
-    
+    spiral_spaxel_bool, nonspiral_spaxel_bool = get_morph_masks(galdict['filepath'], galdict['map_shape'],
+                                                                spiral_threshold=spiral_threshold, other_threshold=other_threshold)
+    df['sp_{Tsp}{Tnsp}'.format(Tsp=spiral_threshold, Tnsp=other_threshold)] = spiral_spaxel_bool.flatten()
+    df['nsp_{Tsp}{Tnsp}'.format(Tsp=spiral_threshold, Tnsp=other_threshold)] = nonspiral_spaxel_bool.flatten()
     df['mangaid'] = galdict['mangaid']
-    df['mass'] = galdict['mass']
+    df = df.replace([np.inf, -np.inf], np.nan)
     
     return df
 
@@ -208,12 +178,10 @@ def form_global_df(galdict, spiral_threshold=3, other_threshold=3):
 # In[8]:
 
 
-def update_spirals(df, file_path, map_shape, spiral_threshold=3, other_threshold=3, ret_bool_masks=False):
-    '''Do you want to change the parametres for what does/doesn't count as a spaxel or a
-    non-spaxel? Use this function to simply update the "Spiral" column of the global DF'''
-    
+def get_morph_masks(file_path, map_shape, spiral_threshold=3, other_threshold=3):
+    '''This function returns boolean spiral arm and non-spiral arm masks'''
     data = gz3d_fits.gz3d_fits(file_path)
-    data.make_all_spaxel_masks(grid_size = map_shape)
+    data.make_all_spaxel_masks(grid_size=map_shape)
     
     center_mask_spaxel_bool = data.center_mask_spaxel > other_threshold
     star_mask_spaxel_bool = data.star_mask_spaxel > other_threshold
@@ -225,10 +193,34 @@ def update_spirals(df, file_path, map_shape, spiral_threshold=3, other_threshold
     spiral_spaxel_bool = spiral_mask_spaxel_bool & (~combined_mask)
     nonspiral_spaxel_bool = (~spiral_mask_spaxel_bool) & (~combined_mask)
     
-    if ret_bool_masks:
-        return spiral_spaxel_bool, nonspiral_spaxel_bool
+    return spiral_spaxel_bool, nonspiral_spaxel_bool
+
+
+# In[1]:
+
+
+def update_spirals(file_path, map_shape, thresholds=(np.array([3], dtype=int), np.array([3], dtype=int))):
+    '''Do you want to change the parametres for what does/doesn't count as a spaxel or a
+    non-spaxel? Use this function to simply add a column to the galaxy DF'''
+    filename = file_path.split('/')[-1]
+    df_file = Path('/home/sshamsi/galaxyzoo/Spiral_Analysis/SFR_Resources/DFs/' + filename + '.pkl')
+    if not df_file.exists():
+        raise ValueError("The galaxy provided does not have a DF saved. Use `return_df` to make and save the DF.")
+    df = pd.read_pickle(str(df_file.resolve()))
+    change = False
     
-    df['sp_{Tsp}{Tnsp}'.format(Tsp=spiral_threshold, Tnsp=other_threshold)] = spiral_spaxel_bool.flatten()
-    df['nsp_{Tsp}{Tnsp}'.format(Tsp=spiral_threshold, Tnsp=other_threshold)] = nonspiral_spaxel_bool.flatten()
-    
+    for spiral_threshold, other_threshold in zip(thresholds[0], thresholds[1]):
+        sp_colname = 'sp_{Tsp}{Tnsp}'.format(Tsp=spiral_threshold, Tnsp=other_threshold)
+        nsp_colname = 'nsp_{Tsp}{Tnsp}'.format(Tsp=spiral_threshold, Tnsp=other_threshold)
+        
+        if (all(x in df.columns for x in [sp_colname, nsp_colname])):
+            print(sp_colname, ', ' + nsp_colname, 'already exists in galaxy', filename)
+        else:
+            spiral_spaxel_bool, nonspiral_spaxel_bool = get_morph_masks(file_path, map_shape, spiral_threshold=spiral_threshold,
+                                                                        other_threshold=other_threshold)
+            df[sp_colname] = spiral_spaxel_bool.flatten()
+            df[nsp_colname] = nonspiral_spaxel_bool.flatten()
+            change = True
+    if change:
+        df.to_pickle(str(df_file.resolve()))
     return df
