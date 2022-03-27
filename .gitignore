@@ -3,7 +3,7 @@ SFR_Resources/Dicts/*
 SFR_Resources/Dicts_Avg_SFR_Thresholds/*
 SFR_Resources/Dicts_Total_SFR_Thresholds/*
 Selecting_Sample/Images_Comparing_Thresholds/*
-Matrices/*
+Matrices/*.npz
 .ipynb_checkpoints
 __pycache__
 old
