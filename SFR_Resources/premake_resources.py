@@ -6,7 +6,6 @@ import numpy as np
 import sys
 sys.path.append('../')
 from spiral_resources import return_dict, return_df
-from sfr_methods import ret_cov_matrices
 
 # Please do change this if you need to save resources for other paths
 file_paths = np.load('../Selecting_Sample/final_sample_paths.npy', allow_pickle=True) 
@@ -14,6 +13,3 @@ file_paths = np.load('../Selecting_Sample/final_sample_paths.npy', allow_pickle=
 for path in file_paths:
     dic = return_dict(path)
     df = return_df(dic)
-    
-    ha_cov_matrix = ret_cov_matrices(df, dic, mode='Ha')
-    hb_cov_matrix = ret_cov_matrices(df, dic, mode='Hb')
