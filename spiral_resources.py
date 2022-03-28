@@ -164,7 +164,7 @@ def form_global_df(galdict, spiral_threshold=3, other_threshold=3):
     
     df = pd.DataFrame(data=data_array, columns=['radius', 'Ha', 'sig_Ha', 'sn_Ha', 'Hb', 'sig_Hb', 'sn_Hb', 'comp',
                                                 'agn', 'seyfert', 'liner', 'ha_spax_healthy', 'hb_spax_healthy'])
-    df['r/re'] = df['radius'] / galdict['eff_rad']
+    df['r_re'] = df['radius'] / galdict['eff_rad']
     spiral_spaxel_bool, nonspiral_spaxel_bool = get_morph_masks(galdict['filepath'], galdict['map_shape'],
                                                                 spiral_threshold=spiral_threshold, other_threshold=other_threshold)
     df['sp_{Tsp}{Tnsp}'.format(Tsp=spiral_threshold, Tnsp=other_threshold)] = spiral_spaxel_bool.flatten()
@@ -196,7 +196,7 @@ def get_morph_masks(file_path, map_shape, spiral_threshold=3, other_threshold=3)
     return spiral_spaxel_bool, nonspiral_spaxel_bool
 
 
-# In[1]:
+# In[9]:
 
 
 def update_spirals(file_path, map_shape, thresholds=(np.array([3], dtype=int), np.array([3], dtype=int))):
