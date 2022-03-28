@@ -102,8 +102,8 @@ class Galaxy:
         if len(spax_bin) == 0:
             raise ValueError('The spax_bin array must not be empty.')
             
-        ha_flux, ha_stdv = get_emission(spax_bin, mode='Ha', avg=avg)
-        hb_flux, hb_stdv = get_emission(spax_bin, mode='Hb', avg=avg)
+        ha_flux, ha_stdv = self.get_emission(spax_bin, mode='Ha', avg=avg)
+        hb_flux, hb_stdv = self.get_emission(spax_bin, mode='Hb', avg=avg)
         
         return self.flux2sfr(ha_flux, ha_stdv, hb_flux, hb_stdv, avg=avg)
     
@@ -119,7 +119,7 @@ class Galaxy:
         
         w_vals = np.ones(len(spax_bin))
         w_rows = np.zeros(len(spax_bin))
-        w_vec = csc_matrix((w_vals, (w_rows, spax_bin)), shape=(1, len(df)))
+        w_vec = csc_matrix((w_vals, (w_rows, spax_bin)), shape=(1, len(self.df)))
         cov_mat = self.ret_cov_matrices(mode=mode)
         var = w_vec.dot(cov_mat.dot(w_vec.transpose()))[0, 0]
         
