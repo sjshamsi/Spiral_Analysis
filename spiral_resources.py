@@ -214,7 +214,7 @@ def update_spirals(file_path, map_shape, thresholds=(np.array([3], dtype=int), n
         nsp_colname = 'nsp_{Tsp}{Tnsp}'.format(Tsp=spiral_threshold, Tnsp=other_threshold)
         
         if (all(x in df.columns for x in [sp_colname, nsp_colname])):
-            print(sp_colname, ', ' + nsp_colname, 'already exists in galaxy', filename)
+            continue
         else:
             spiral_spaxel_bool, nonspiral_spaxel_bool = get_morph_masks(file_path, map_shape, spiral_threshold=spiral_threshold,
                                                                         other_threshold=other_threshold)
